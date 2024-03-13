@@ -4,22 +4,29 @@ services:
   postgres:
     image: 'postgres:15'
     container_name: 'java-postgres'
-    environment:
-      - 'POSTGRES_USER=${DB_USERNAME}'
-      - 'POSTGRES_PASSWORD=${DB_PASSWORD}'
-      - 'POSTGRES_DB=${DB_NAME}'
-    ports:
-      - "${DB_PORT}:5432"
+    env_file:
+      - .env
+    networks:
+      - mynetwork
+    volumes:
+      - db-data:/var/lib/postgresql/data
 
   app:
     build: ./
     container_name: 'java_app'
     depends_on:
       - postgres
-    environment:
-      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${DB_NAME}'
-      - 'SPRING_DATASOURCE_USERNAME=${DB_USERNAME}'
-      - 'SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}'
+    env_file:
+      - .env
     ports:
       - "8081:8081"
     restart: on-failure
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  db-data:
